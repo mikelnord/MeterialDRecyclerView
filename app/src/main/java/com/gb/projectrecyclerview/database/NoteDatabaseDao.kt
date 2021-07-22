@@ -19,4 +19,11 @@ interface NoteDatabaseDao {
 
     @Query("SELECT * FROM note_table ORDER BY noteId DESC")
     fun getAllNotes(): LiveData<List<Note>>
+
+    @Query("SELECT * from note_table WHERE noteId = :key")
+    suspend fun get(key: Long): Note?
+
+    @Query("SELECT * from note_table WHERE noteId = :key")
+    fun getNightWithId(key: Long): LiveData<Note>
+
 }
