@@ -15,16 +15,18 @@ class NoteTrackerViewModel(
     private var tonote = MutableLiveData<Note?>()
     val notes = database.getAllNotes()
 
-    private suspend fun insert(note: Note) {
-        database.insert(note)
+
+    private suspend fun delete(note: Note) {
+        database.delete(note)
     }
 
-
-    private suspend fun update(note: Note) {
-        database.update(note)
+    fun onDeleteNote(note: Note) {
+        viewModelScope.launch {
+            delete(note)
+        }
     }
 
-    fun onClear() {
+        fun onClear() {
         viewModelScope.launch {
             clear()
             tonote.value = null
@@ -33,29 +35,31 @@ class NoteTrackerViewModel(
 
     suspend fun clear() {
         database.clear()
-        _showSnackbarEvent.value = true
     }
 
-
-    private var _showSnackbarEvent = MutableLiveData<Boolean>()
-
-    val showSnackBarEvent: LiveData<Boolean>
-        get() = _showSnackbarEvent
-
-    fun doneShowingSnackbar() {
-        _showSnackbarEvent.value = false
+    fun onInsertNote() {
+        viewModelScope.launch {
+            val newNote = Note()
+            insert(newNote)
+            tonote.value=database.getTonote()
+            tonote.value.let { _navigateToNoteDetail.value = tonote.value?.noteId }
+        }
     }
 
-    private val _navigateToNoteDataQuality = MutableLiveData<Long?>()
-    val navigateToSleepDataQuality
-        get() = _navigateToNoteDataQuality
-
-    fun onNoteClicked(id: Long){
-        _navigateToNoteDataQuality.value = id
+    private suspend fun insert(note: Note) {
+        database.insert(note)
     }
 
-    fun onNoteDataQualityNavigated() {
-        _navigateToNoteDataQuality.value = null
+    private val _navigateToNoteDetail = MutableLiveData<Long?>()
+    val navigateToNoteDetail
+        get() = _navigateToNoteDetail
+
+    fun onNoteClicked(id: Long) {
+        _navigateToNoteDetail.value = id
+    }
+
+    fun doneNavigating() {
+        _navigateToNoteDetail.value = null
     }
 
 }

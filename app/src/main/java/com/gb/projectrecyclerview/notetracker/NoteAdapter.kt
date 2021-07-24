@@ -14,19 +14,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val ITEM_VIEW_TYPE_HEADER = 0
-private val ITEM_VIEW_TYPE_ITEM = 1
+private const val ITEM_VIEW_TYPE_HEADER = 0
+private const val ITEM_VIEW_TYPE_ITEM = 1
 
-class NoteAdapter(val clickListener: NoteListener) :
+class NoteAdapter(private val clickListener: NoteListener) :
     ListAdapter<DataItem, RecyclerView.ViewHolder>(NoteDiffCallback()) {
 
     private val adapterScope = CoroutineScope(Dispatchers.Default)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             ITEM_VIEW_TYPE_HEADER -> TextViewHolder.from(parent)
-            ITEM_VIEW_TYPE_ITEM -> ViewHolder.from(parent)
-            else -> throw ClassCastException("Unknown viewType ${viewType}")
+            ITEM_VIEW_TYPE_ITEM -> ViewHolder(ListItemNoteBinding.inflate(inflater, parent, false))
+            else -> throw ClassCastException("Unknown viewType $viewType")
         }
     }
 
@@ -58,25 +59,26 @@ class NoteAdapter(val clickListener: NoteListener) :
         }
     }
 
-    class ViewHolder private constructor(private val binding: ListItemNoteBinding) :
+    inner class ViewHolder(private val binding: ListItemNoteBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Note, clickListener: NoteListener) {
             binding.note = item
-            binding.clickListener=clickListener
+            binding.clickListener = clickListener
+            binding.titleString.setOnClickListener { toggleText() }
+            binding.textNoteString.visibility =
+                if (currentList[layoutPosition].isVisible) View.VISIBLE else View.GONE
             binding.executePendingBindings()
         }
 
-        companion object {
-            fun from(parent: ViewGroup): ViewHolder {
-                val layoutInflater = LayoutInflater.from(parent.context)
-                val binding = ListItemNoteBinding.inflate(layoutInflater, parent, false)
-                return ViewHolder(binding)
-            }
+        private fun toggleText() {
+            currentList[layoutPosition].isVisible = !currentList[layoutPosition].isVisible
+            notifyItemChanged(layoutPosition)
         }
+
     }
 
-    class TextViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    class TextViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         companion object {
             fun from(parent: ViewGroup): TextViewHolder {
                 val layoutInflater = LayoutInflater.from(parent.context)
@@ -98,8 +100,10 @@ class NoteDiffCallback : DiffUtil.ItemCallback<DataItem>() {
     }
 }
 
-class NoteListener(val clickListener: (NoteId: Long) -> Unit) {
+class NoteListener(val clickListener: (NoteId: Long) -> Unit,
+                    val clickListenerDel:(note:Note) -> Unit) {
     fun onClick(note: Note) = clickListener(note.noteId)
+    fun onClickDel(note: Note) = clickListenerDel(note)
 }
 
 sealed class DataItem {
@@ -111,5 +115,6 @@ sealed class DataItem {
         override val id = Long.MIN_VALUE
     }
 
+    var isVisible = false
     abstract val id: Long
 }

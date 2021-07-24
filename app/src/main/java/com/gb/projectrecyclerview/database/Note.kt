@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class Note(
     @PrimaryKey(autoGenerate = true)
     var noteId: Long = 0L,
-    val textNote:String,
-    val titleNote:String
+    var textNote:String="",
+    var titleNote:String=""
 )

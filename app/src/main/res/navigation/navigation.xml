@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/navigation">
+    android:id="@+id/navigation"
+    app:startDestination="@id/noteTrackerFragment">
 
+    <fragment
+        android:id="@+id/noteTrackerFragment"
+        android:name="com.gb.projectrecyclerview.notetracker.NoteTrackerFragment"
+        android:label="NoteTrackerFragment" >
+        <action
+            android:id="@+id/action_noteTrackerFragment_to_noteDetailFragment"
+            app:destination="@id/noteDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/noteDetailFragment"
+        android:name="com.gb.projectrecyclerview.notedetail.NoteDetailFragment"
+        android:label="NoteDetailFragment" >
+        <argument
+            android:name="noteKey"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_noteDetailFragment_to_noteTrackerFragment"
+            app:destination="@id/noteTrackerFragment"
+            app:popUpTo="@id/noteTrackerFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>
